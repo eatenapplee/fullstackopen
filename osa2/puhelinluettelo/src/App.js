@@ -3,13 +3,17 @@ import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import peopleService from './services/people'
-import people from './services/people'
+import Notification from './components/Notification'
+
 
 const App = () => {
   const [ persons, setPersons] = useState([]) 
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('');
+  const [message, setMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
+
 
   useEffect(() => {
     peopleService.getAll()
@@ -46,9 +50,18 @@ const App = () => {
       if (result === true) {
         peopleService.update(findPerson.id, nameObject)
           .then(returnedPeople => {
-            console.log(returnedPeople)
+            setMessage('Info updated successfully')
             console.log(findPerson)
             setPersons(persons.map(p => p.id === findPerson.id ? returnedPeople : p))
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+          })
+          .catch(error => {
+            setErrorMessage(`Information of ${findPerson.name} has already been removed from server`)
+            setTimeout(() => {
+              setErrorMessage(null)
+            }, 5000)
           })
       } else {
         return null
@@ -59,6 +72,10 @@ const App = () => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+          setMessage('Added successfully')
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
         })
 
     }
@@ -72,8 +89,12 @@ const App = () => {
     if (result === true) {
       peopleService.remove(id)
       .then(filteredPeople => {
+        setMessage('Deleted successfully')
         console.log('removed')
         setPersons(persons.filter(p => p.id !== id))
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
       })
     } else {
       return null
@@ -82,16 +103,11 @@ const App = () => {
 
   }
 
-  const handleUpdate = (id) => {
-    console.log(id);
-
-
-    
-  }
-
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
+      <Notification message={errorMessage} problem={true} />
       <Filter value={filter} onChange={handleFilterChange} />
       <h2>add a new</h2>
       <PersonForm onSubmit={handleSubmit} nameValue={newName} nameOnChange={handleNameChange} numberValue={newNumber} numberOnChange={handleNumberChange}/>
